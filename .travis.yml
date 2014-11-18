@@ -58,7 +58,12 @@ language: java
 #
 
 before_install:
- - mkdir "$HOME/.python-eggs"
+ - echo "Creating virtual environment for Galaxy's Python"
+ - sudo apt-get install -y python-virtualenv
+ - virtualenv galaxy-virtualenv
+ - source galaxy-virtualenv/bin/activate
+ - echo "Fixing permissions on Python eggs cache folder"
+ - mkdir -p "$HOME/.python-eggs"
  - chmod 700 "$HOME/.python-eggs" 
  - echo "Installing Biopython for system Python..."
  - sudo apt-get install python-biopython
