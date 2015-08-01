@@ -17,14 +17,17 @@ def sys_exit(msg, error_level=1):
     sys.exit(error_level)
 
 try:
-    import rpy
+    import rpy2.robjects as robjects
+    import rpy2.robjects.packages as rpackages
+    from rpy2.robjects.packages import importr
+    grdevices = importr('grDevices')
 except ImportError:
     sys_exit("Requires the Python library rpy (to call R)")
 except RuntimeError, e:
     sys_exit("The Python library rpy is not availble for the current R version\n\n%s" % e)
 
 try:
-    rpy.r.library("limma")
+    limma = rpackages.importr('limma')
 except:
     sys_exit("Requires the R library limma (for vennDiagram function)")
 
@@ -100,38 +103,39 @@ for s, (f,t,c) in zip(sets, set_data):
 try:
     #Create dummy Venn diagram counts object for three groups
     cols = 'c("%s")' % '","'.join("Set%i" % (i+1) for i in range(n))
-    rpy.r('groups <- cbind(%s)' % ','.join(['1']*n))
-    rpy.r('colnames(groups) <- %s' % cols)
-    rpy.r('vc <- vennCounts(groups)')
+    robjects.r('groups <- cbind(%s)' % ','.join(['1']*n))
+    robjects.r('colnames(groups) <- %s' % cols)
+    robjects.r('vc <- vennCounts(groups)')
     #Populate the 2^n classes with real counts
     #Don't make any assumptions about the class order
     #print rpy.r('vc')
-    for index, row in enumerate(rpy.r('vc[,%s]' % cols)):
+    for index, row in enumerate(robjects.r('vc[,%s]' % cols)):
         if isinstance(row, int) or isinstance(row, float):
             #Hack for rpy being too clever for single element row
             row = [row]
         names = all
+
         for wanted, s in zip(row, sets):
             if wanted:
                 names = names.intersection(s)
             else:
                 names = names.difference(s)
-        rpy.r('vc[%i,"Counts"] <- %i' % (index+1, len(names)))
+        robjects.r('vc[%i,"Counts"] <- %i' % (index+1, len(names)))
     #print rpy.r('vc')
     if n == 1:
         #Single circle, don't need to add (Total XXX) line
         names = [c for (t,f,c) in set_data]
     else:
         names = ["%s\n(Total %i)" % (c, len(s)) for s, (f,t,c) in zip(sets, set_data)]
-    rpy.r.assign("names", names)
-    rpy.r.assign("colors", ["red","green","blue"][:n])
-    rpy.r.pdf(pdf_file, 8, 8)
-    rpy.r("""vennDiagram(vc, include="both", names=names,
+    robjects.r.assign("names", names)
+    robjects.r.assign("colors", ["red","green","blue"][:n])
+    robjects.r.pdf(pdf_file, 8, 8)
+    robjects.r("""vennDiagram(vc, include="both", names=names,
                          main="%s", sub="(Total %i)",
                          circle.col=colors)
                          """ % (all_label, len(all)))
-    rpy.r.dev_off()
+    grdevices.dev_off()
 except Exception, exc:
     sys_exit( "%s" %str( exc ) )
-rpy.r.quit( save="no" )
+#robjects.r.quit( save="no" )
 print "Done"
