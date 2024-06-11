@@ -198,6 +198,7 @@ v0.2.12 - Fix reporting of HMMER error in RXLR tool.
         - Applied black style to the Python code
         - Python 3 fixes with next function vs method.
 v0.2.13 - Python 3 fix for raising StopIteration.
+v0.2.14 - Fixed misuse of sys.exit in psortb wrapper.
 ======= ======================================================================
 
 

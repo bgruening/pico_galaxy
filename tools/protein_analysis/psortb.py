@@ -238,11 +238,11 @@ for fasta, temp, cmd in zip(fasta_files, temp_files, jobs):
         except IOError:
             output = ""
         clean_up(fasta_files + temp_files)
-        sys.exit(
+        sys.stderr.write(
             "One or more tasks failed, e.g. %i from %r gave:\n%s"
-            % (error_level, cmd, output),
-            error_level,
+            % (error_level, cmd, output)
         )
+        sys.exit(error_level)
 del results
 del jobs
 
